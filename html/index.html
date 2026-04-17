@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Employees</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f4f4f4;
+}
+
+.container {
+    width: 600px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+th {
+    background: #007BFF;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Lista de Employees</h2>
+
+    <button onclick="cargar()">Mostrar Employees</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Ano</th>
+                <th>Preco</th>
+            </tr>
+        </thead>
+        <tbody id="tabla">
+        </tbody>
+    </table>
+</div>
+
+<script>
+
+const API = "http://localhost:8080/cars";
+
+// 🔹 GET → cargar datos en tabla
+function cargar() {
+    fetch(API)
+    .then(res => res.json())
+    .then(data => {
+        const tabla = document.getElementById("tabla");
+        tabla.innerHTML = "";
+
+        data.forEach(car => {
+            tabla.innerHTML += `
+                <tr>
+                    <td>${car.id}</td>
+                    <td>${car.marca}</td>
+                    <td>${car.modelo}</td>
+                    <td>${car.ano}</td>
+                    <td>${car.preco}</td>
+                </tr>
+            `;
+        });
+    })
+    .catch(error => console.error("Error:", error));
+}
+
+</script>
+
+</body>
+</html>
