@@ -2,73 +2,187 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Employees</title>
+<title>Lista De Carros</title>
 
 <style>
 body {
-    font-family: Arial;
-    text-align: center;
-    background: #f4f4f4;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #eef2f7;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
-    width: 600px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
+    width: 800px;
+    margin: 50px auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* FORM */
+form {
+    margin-bottom: 20px;
+}
+
+input {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 150px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    background: #007BFF;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
 
-th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-}
-
 th {
     background: #007BFF;
     color: white;
+    padding: 12px;
 }
 
-tr:nth-child(even) {
-    background: #f2f2f2;
+td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+tr:hover {
+    background: #f1f1f1;
+}
+
+
+td button {
+    margin: 2px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+td button:first-child {
+    background: #28a745;
+}
+
+td button:first-child:hover {
+    background: #1e7e34;
+}
+
+td button:last-child {
+    background: #dc3545;
+}
+
+td button:last-child:hover {
+    background: #a71d2a;
 }
 </style>
+
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Ano</th>
+            <th>Preço</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody id="tabla"></tbody>
+</table>
+
+
 
 </head>
 
 <body>
 
 <div class="container">
-    <h2>Lista de Employees</h2>
-
-    <button onclick="cargar()">Mostrar Employees</button>
+    <h2>Lista de Carros</h2>
+        <form id="form" onsubmit="criar(event)">
+    <input type="text" id="marca" placeholder="Marca" required>
+    <input type="text" id="modelo" placeholder="Modelo" required>
+    <input type="number" id="ano" placeholder="Ano" required>
+    <input type="number" id="preco" placeholder="Preço" required>
+    <button type="submit">Salvar</button>
+</form>
 
     <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Marca</th>
-                <th>Modelo</th>
-                <th>Ano</th>
-                <th>Preco</th>
-            </tr>
-        </thead>
-        <tbody id="tabla">
-        </tbody>
+
     </table>
 </div>
 
+
+
+
+
+
+
 <script>
 
+let editandoId = null;
 const API = "http://localhost:8080/cars";
 
-// 🔹 GET → cargar datos en tabla
+//create + upta
+function criar(e) {
+    e.preventDefault();
+
+    const car = {
+        marca: document.getElementById("marca").value,
+        modelo: document.getElementById("modelo").value,
+        ano: parseInt(document.getElementById("ano").value),
+        preco: parseInt(document.getElementById("preco").value)
+    };
+
+    let metodo = "POST";
+    let url = API;
+
+    if (editandoId !== null) {
+        metodo = "PUT";
+        url = API + "/" + editandoId;
+    }
+
+    fetch(url, {
+        method: metodo,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(car)
+    })
+    .then(() => {
+        cargar();
+        document.getElementById("form").reset();
+        editandoId = null;
+    })
+    .catch(error => console.error("Erro:", error));
+}
+
+
+//get
 function cargar() {
     fetch(API)
     .then(res => res.json())
@@ -78,18 +192,47 @@ function cargar() {
 
         data.forEach(car => {
             tabla.innerHTML += `
-                <tr>
+                <tr>    
                     <td>${car.id}</td>
                     <td>${car.marca}</td>
                     <td>${car.modelo}</td>
                     <td>${car.ano}</td>
                     <td>${car.preco}</td>
+                    <td>
+                        <button onclick="editar(${car.id}, '${car.marca}', '${car.modelo}', ${car.ano}, ${car.preco})">Editar</button>
+                        <button onclick="deletar(${car.id})">Excluir</button>
+                    </td>
                 </tr>
             `;
         });
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => console.error("Erro ao carregar:", error));
 }
+
+
+//delete
+function deletar(id) {
+    fetch(API + "/" + id, {
+        method: "DELETE"
+    })
+    .then(() => cargar())
+    .catch(error => console.error("Erro ao deletar:", error));
+}
+
+
+//editar
+function editar(id, marca, modelo, ano, preco) {
+    document.getElementById("marca").value = marca;
+    document.getElementById("modelo").value = modelo;
+    document.getElementById("ano").value = ano;
+    document.getElementById("preco").value = preco;
+
+    editandoId = id;
+}
+
+
+//f5
+window.onload = cargar;
 
 </script>
 
